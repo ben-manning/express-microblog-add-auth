@@ -4,7 +4,7 @@ var express = require('express'),
     bodyParser = require('body-parser');
     mongoose = require('mongoose');
     cookeParser = require('cookie-parser');
-    session = require('session');
+    session = require('express-session');
     passport = require('passport');
     LocalStrategy = require('passport-local').Strategy;
 
@@ -19,7 +19,8 @@ app.set('view engine', 'hbs');
 
 // require Post model
 var db = require('./models'),
-    Post = db.Post;
+    Post = db.Post,
+    User = db.User;
 
 // middleware for auth
 app.use(cookeParser());
@@ -29,11 +30,35 @@ app.use(session({
   saveUninitialized: false
 }));
 app.use(passport.initialize());
+app.use(passport.session());
+
+// passport config
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 // HOMEPAGE ROUTE
 
 app.get('/', function (req, res) {
   res.render('index');
+});
+
+// AUTH ROUTES
+
+// show signup view
+app.get('/signup', function (req, res) {
+  res.render('signup');
+});
+
+// sign up new user, then log them in
+// hashes and salts password, saves new user to db
+app.post('/signup', function (req, res) {
+  User.register(new User({ username: req.body.username }), req.body.password,
+    function (err, newUser) {
+      passport.authenticate('local')(req, res, function() {
+        res.redirect('/');
+      });
+    });
 });
 
 
