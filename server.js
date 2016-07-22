@@ -2,6 +2,11 @@
 var express = require('express'),
     app = express(),
     bodyParser = require('body-parser');
+    mongoose = require('mongoose');
+    cookeParser = require('cookie-parser');
+    session = require('session');
+    passport = require('passport');
+    LocalStrategy = require('passport-local').Strategy;
 
 // configure bodyParser (for receiving form data)
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -16,6 +21,14 @@ app.set('view engine', 'hbs');
 var db = require('./models'),
     Post = db.Post;
 
+// middleware for auth
+app.use(cookeParser());
+app.use(session({
+  secret: 'ultrasecretkey',
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
 
 // HOMEPAGE ROUTE
 
